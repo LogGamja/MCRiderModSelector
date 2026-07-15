@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "mcridermodselector",
+	"version": "${version}",
+	"name": "MCRider Mod Selector",
+	"description": "MCRider, TickSync, MCDriftHUD-Lite의 설정을 프리셋으로 한번에 제어합니다.\nControl MCRider, TickSync, and MCDriftHUD-Lite settings together via presets.",
+	"authors": [
+		"LogGamja"
+	],
+	"license": "CC0-1.0",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"loggamja.modselector.ModSelectorMain"
+		]
+	},
+	"mixins": [
+		"modselector.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.4",
+		"minecraft": ">=1.21.4 <=1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"mcrider-official": "*",
+		"ticksync": "*",
+		"mcdrifthud-lite": "*"
+	}
+}

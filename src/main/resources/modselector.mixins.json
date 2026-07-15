@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "loggamja.modselector.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+    "GameMenuScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "modselector.setting.title": "MCRider 모드 셀렉터",
+  "modselector.setting.menu_button": "MCRider 셀렉터",
+  "modselector.setting.ok": "확인",
+
+  "modselector.setting.section.presets": "프리셋",
+  "modselector.setting.section.mod_settings": "고급 설정",
+
+  "modselector.preset.1.name": "클래식",
+  "modselector.preset.1.desc": "바닐라 마인크래프트로 구현된 기본 인터페이스를 표시합니다.",
+  "modselector.preset.2.name": "세미 클래식",
+  "modselector.preset.2.desc": "미니맵과 드래프트 게이지 등 편의성이 개선된 인터페이스입니다.",
+  "modselector.preset.3.name": "마크라이더",
+  "modselector.preset.3.desc": "카트라이더: 마인크래프트만의 오리지널 인터페이스를 표시합니다.",
+  "modselector.preset.4.name": "오리지널",
+  "modselector.preset.4.desc": "원작 카트라이더의 계기판을 도트 그래픽으로 재현합니다.",
+
+  "modselector.open.mcrider": "MCRider 설정",
+  "modselector.open.ticksync": "틱 동기화 설정",
+  "modselector.open.not_installed": "설치되지 않음"
+}

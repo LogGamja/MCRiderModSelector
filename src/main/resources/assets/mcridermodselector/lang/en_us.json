@@ -1,0 +1,21 @@
+{
+  "modselector.setting.title": "MCRider Mod Selector",
+  "modselector.setting.menu_button": "MCRider Selector",
+  "modselector.setting.ok": "OK",
+
+  "modselector.setting.section.presets": "Presets",
+  "modselector.setting.section.mod_settings": "Advanced Settings",
+
+  "modselector.preset.1.name": "Classic",
+  "modselector.preset.1.desc": "Shows the default interface implemented with vanilla Minecraft.",
+  "modselector.preset.2.name": "Semi-Classic",
+  "modselector.preset.2.desc": "An interface with quality-of-life improvements such as a minimap and drift gauge.",
+  "modselector.preset.3.name": "MCRider",
+  "modselector.preset.3.desc": "Shows the original interface unique to KartRider: Minecraft.",
+  "modselector.preset.4.name": "Original",
+  "modselector.preset.4.desc": "Recreates the original KartRider's dashboard in pixel-art graphics.",
+
+  "modselector.open.mcrider": "MCRider Setting",
+  "modselector.open.ticksync": "TickSync Setting",
+  "modselector.open.not_installed": "Not installed"
+}
