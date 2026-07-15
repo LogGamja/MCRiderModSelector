@@ -23,6 +23,7 @@ public abstract class TitleScreenMixin extends Screen {
     private void modselector$showIntroPreset(CallbackInfo ci) {
         if (!ModSelectorMain.shouldShowMenuButton()) return;
         if (!FirstLaunchTracker.consumeFirstLaunch()) return;
+        ModSelectorMain.applyDefaultPresetForFirstLaunch();
         assert this.client != null;
         this.client.setScreen(new ModSelectorSettingScreen(this));
     }

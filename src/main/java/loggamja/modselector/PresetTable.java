@@ -161,6 +161,24 @@ final class PresetTable {
         return result;
     }
 
+    // 프리셋 창을 처음 띄울 때 기본으로 선택돼 있을 프리셋의 id.
+    // 앞쪽 id가 안 보이는 조합(MCDriftHUD-Lite 미설치 등)이면 다음 id로 넘어간다.
+    private static final String[] DEFAULT_PRESET_IDS = {"preset_3", "preset_2"};
+
+    // 첫 실행 시 DEFAULT_PRESET_IDS 중 화면에 실제로 보이는 첫 프리셋을 미리 적용해,
+    // 화면이 뜨자마자 골든 테두리로 선택된 상태로 보이게 한다.
+    static void applyDefault() {
+        java.util.List<Preset> visible = visiblePresets();
+        for (String id : DEFAULT_PRESET_IDS) {
+            for (Preset preset : visible) {
+                if (preset.id().equals(id)) {
+                    apply(preset);
+                    return;
+                }
+            }
+        }
+    }
+
     static final Preset[] PRESETS = {
             // 1. 클래식 — 조작 가속(극한), 패킷 가속만 켜고 나머지는 모두 끔. HUD는 바닐라, 투명 엔티티 최적화 꺼짐, 닉네임 모두 표시
             new Preset(

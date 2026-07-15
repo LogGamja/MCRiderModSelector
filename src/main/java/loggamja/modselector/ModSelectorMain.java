@@ -30,4 +30,9 @@ public class ModSelectorMain implements ClientModInitializer {
         FabricLoader loader = FabricLoader.getInstance();
         return loader.isModLoaded(MCRIDER_MOD_ID) || loader.isModLoaded(MCDRIFTHUD_MOD_ID);
     }
+
+    // 첫 실행 안내 화면을 띄우기 직전에 호출해, 화면이 뜨는 순간부터 기본 프리셋이 선택된 상태로 보이게 한다
+    public static void applyDefaultPresetForFirstLaunch() {
+        PresetTable.applyDefault();
+    }
 }
