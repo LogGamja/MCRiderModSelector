@@ -37,7 +37,7 @@ final class PresetTable {
                        int fallbackMinMonitorHeight, float fallbackRatioX, float fallbackRatioY, int fallbackHeight) {}
 
     record Preset(String id, String nameKey, String descKey, Identifier texture,
-                   OptionValue[] mcriderOptions, HudOptions hudOptions) {}
+                  boolean requiresMCRiderHUD, OptionValue[] mcriderOptions, HudOptions hudOptions) {}
 
     // tick sync는 모든 프리셋이 같은 값(틱 동기화 켜짐, 정확도 자동)을 명시한다 — 기준 스레드/디버그 화면은 프리셋이 건드리지 않으므로
     // resetInstalledMods()로 기본값이 되긴 하지만, 이 값이 바뀌어도 강조 판정에는 영향을 주지 않는다
@@ -150,11 +150,23 @@ final class PresetTable {
         return ah == bh && Math.abs(ax - bx) < 1e-4f && Math.abs(ay - by) < 1e-4f;
     }
 
+    // 화면에 실제로 그릴 프리셋. HUD 모드가 없으면 requiresMCRiderHUD 프리셋은 제외한다
+    static java.util.List<Preset> visiblePresets() {
+        boolean hudLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.MCDRIFTHUD_MOD_ID);
+        java.util.List<Preset> result = new java.util.ArrayList<>();
+        for (Preset preset : PRESETS) {
+            if (preset.requiresMCRiderHUD() && !hudLoaded) continue;
+            result.add(preset);
+        }
+        return result;
+    }
+
     static final Preset[] PRESETS = {
             // 1. 클래식 — 조작 가속(극한), 패킷 가속만 켜고 나머지는 모두 끔. HUD는 바닐라, 투명 엔티티 최적화 꺼짐, 닉네임 모두 표시
             new Preset(
                     "preset_1", "modselector.preset.1.name", "modselector.preset.1.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_1.png"),
+                    false,
                     new OptionValue[]{
                             new OptionValue("steer_boost", 2),
                             new OptionValue("packet_boost", 1),
@@ -175,6 +187,7 @@ final class PresetTable {
             new Preset(
                     "preset_2", "modselector.preset.2.name", "modselector.preset.2.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_2.png"),
+                    false,
                     new OptionValue[]{
                             new OptionValue("steer_boost", 2),
                             new OptionValue("packet_boost", 1),
@@ -195,6 +208,7 @@ final class PresetTable {
             new Preset(
                     "preset_3", "modselector.preset.3.name", "modselector.preset.3.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_3.png"),
+                    true,
                     new OptionValue[]{
                             new OptionValue("steer_boost", 2),
                             new OptionValue("packet_boost", 1),
@@ -215,6 +229,7 @@ final class PresetTable {
             new Preset(
                     "preset_4", "modselector.preset.4.name", "modselector.preset.4.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_4.png"),
+                    true,
                     new OptionValue[]{
                             new OptionValue("steer_boost", 2),
                             new OptionValue("packet_boost", 1),

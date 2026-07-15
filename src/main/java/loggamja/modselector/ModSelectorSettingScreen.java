@@ -37,6 +37,8 @@ public class ModSelectorSettingScreen extends Screen {
     private int labelAreaHeight;
     private final List<List<OrderedText>> wrappedDescriptions = new java.util.ArrayList<>();
 
+    private List<PresetTable.Preset> presets = java.util.List.of();
+
     // ESC 메뉴가 아닌 다른 곳에서도 열릴 수 있으므로 닫을 때 돌아갈 화면을 직접 기억한다
     public ModSelectorSettingScreen(Screen parent) {
         super(Text.translatable("modselector.setting.title"));
@@ -44,7 +46,7 @@ public class ModSelectorSettingScreen extends Screen {
     }
 
     private int presetsRowStartX() {
-        int rowWidth = PresetTable.PRESETS.length * ICON_WIDTH + (PresetTable.PRESETS.length - 1) * ICON_GAP;
+        int rowWidth = presets.size() * ICON_WIDTH + (presets.size() - 1) * ICON_GAP;
         return this.width / 2 - rowWidth / 2;
     }
 
@@ -56,6 +58,8 @@ public class ModSelectorSettingScreen extends Screen {
     protected void init() {
         super.init();
 
+        this.presets = PresetTable.visiblePresets();
+
         boolean mcriderLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.MCRIDER_MOD_ID);
         boolean ticksyncLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.TICKSYNC_MOD_ID);
         boolean mcdrifthudLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.MCDRIFTHUD_MOD_ID);
@@ -64,7 +68,7 @@ public class ModSelectorSettingScreen extends Screen {
         // 옆 프리셋과 겹치지 않도록 한 줄로 쭉 그리는 대신 아이콘 너비 안에서 줄바꿈한다
         wrappedDescriptions.clear();
         int maxDescLines = 1;
-        for (var preset : PresetTable.PRESETS) {
+        for (var preset : presets) {
             List<OrderedText> lines = this.textRenderer.wrapLines(Text.translatable(preset.descKey()), ICON_WIDTH);
             wrappedDescriptions.add(lines);
             maxDescLines = Math.max(maxDescLines, lines.size());
@@ -85,8 +89,8 @@ public class ModSelectorSettingScreen extends Screen {
         this.iconY = Math.max(centeredIconY, requiredIconY);
 
         int startX = presetsRowStartX();
-        for (int i = 0; i < PresetTable.PRESETS.length; i++) {
-            var preset = PresetTable.PRESETS[i];
+        for (int i = 0; i < presets.size(); i++) {
+            var preset = presets.get(i);
             int x = startX + i * (ICON_WIDTH + ICON_GAP);
 
             PresetIconButton iconButton = new PresetIconButton(x, iconY, ICON_WIDTH, ICON_HEIGHT,
@@ -142,8 +146,8 @@ public class ModSelectorSettingScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
 
         int startX = presetsRowStartX();
-        for (int i = 0; i < PresetTable.PRESETS.length; i++) {
-            var preset = PresetTable.PRESETS[i];
+        for (int i = 0; i < presets.size(); i++) {
+            var preset = presets.get(i);
             int centerX = startX + i * (ICON_WIDTH + ICON_GAP) + ICON_WIDTH / 2;
 
             context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable(preset.nameKey()), centerX, iconY + ICON_HEIGHT + NAME_GAP, 0xFFFFFF);
