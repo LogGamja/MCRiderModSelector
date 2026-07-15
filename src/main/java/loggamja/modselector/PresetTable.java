@@ -4,6 +4,7 @@ import com.kite.mcdrift.client.api.MCDriftHudAPI;
 import loggamja.mcrider.api.MCRiderAPI;
 import loggamja.sync.api.TickSyncAPI;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
 
 // 4개 프리셋의 번역 키 + 아이콘 텍스처 + 적용 로직 정의 테이블
@@ -45,8 +46,8 @@ final class PresetTable {
             new OptionValue("auto_margin", 1),
     };
 
-    // 프리셋을 적용하기 전, 설치된 모드의 옵션을 모두 기본값으로 되돌린다
-    // (프리셋마다 자신이 필요로 하는 옵션을 처음부터 전부 명시하기 위한 깨끗한 시작점을 만든다)
+    // 프리셋을 적용하기 전 설치된 모드의 옵션을 모두 기본값으로 되돌린다
+    // 프리셋마다 자신이 필요로 하는 옵션을 처음부터 전부 명시하기 위한 깨끗한 시작점을 만든다
     private static void resetInstalledMods() {
         if (FabricLoader.getInstance().isModLoaded(ModSelectorMain.TICKSYNC_MOD_ID)) {
             TickSyncAPI.resetToDefaults();
@@ -94,16 +95,22 @@ final class PresetTable {
     }
 
     // 현재 라이브 옵션 값이 이 프리셋이 요구하는 값과 정확히 일치하는지 확인한다 (유저가 뭔가 건드렸으면 더 이상 일치하지 않는다)
+    // 설치되지 않은 모드는 비교 대상에서 제외한다, 설치된 모드끼리만 전부 일치하면 강조한다.
+    // 관련 모드가 하나도 없으면 강조할 근거가 없으므로 false.
     static boolean isActive(Preset preset) {
         FabricLoader loader = FabricLoader.getInstance();
-        if (!loader.isModLoaded(ModSelectorMain.MCRIDER_MOD_ID)) return false;
+        boolean anyLoaded = false;
 
-        for (OptionValue option : preset.mcriderOptions()) {
-            int current = MCRiderAPI.getToggleOption(option.id()).orElse(Integer.MIN_VALUE);
-            if (current != option.value()) return false;
+        if (loader.isModLoaded(ModSelectorMain.MCRIDER_MOD_ID)) {
+            anyLoaded = true;
+            for (OptionValue option : preset.mcriderOptions()) {
+                int current = MCRiderAPI.getToggleOption(option.id()).orElse(Integer.MIN_VALUE);
+                if (current != option.value()) return false;
+            }
         }
 
         if (loader.isModLoaded(ModSelectorMain.TICKSYNC_MOD_ID)) {
+            anyLoaded = true;
             for (OptionValue option : TICKSYNC_OPTIONS) {
                 int current = TickSyncAPI.getToggleOption(option.id()).orElse(Integer.MIN_VALUE);
                 if (current != option.value()) return false;
@@ -111,14 +118,36 @@ final class PresetTable {
         }
 
         if (loader.isModLoaded(ModSelectorMain.MCDRIFTHUD_MOD_ID)) {
+            anyLoaded = true;
             HudOptions hud = preset.hudOptions();
             if (!MCDriftHudAPI.getDesignStyleId().equals(hud.designStyleId())) return false;
             if (MCDriftHudAPI.isHideInvisibleEntities() != hud.hideInvisibleEntities()) return false;
             if (!MCDriftHudAPI.getTextDisplayModeName().equals(hud.textDisplayMode())) return false;
             if (MCDriftHudAPI.getGaugeSmoother() != hud.gaugeSmoother()) return false;
+            // 해상도를 명시한 프리셋(windowedHeight>0)만, 그리고 창 모드에서만 비교한다
+            // (windowedHeight==0은 "해상도 미관리"라는 뜻이고, 전체화면에선 setWindowedResolution이 no-op이라 저장값이 갱신되지 않는다)
+            if (hud.windowedHeight() > 0
+                    && !MinecraftClient.getInstance().getWindow().isFullscreen()
+                    && !hudResolutionMatches(hud)) return false;
         }
 
-        return true;
+        return anyLoaded;
+    }
+
+    // 저장된 해상도 오버라이드가 이 프리셋의 창 해상도와 일치하는지 본다.
+    // 모니터가 작아 fallback 해상도가 대신 적용됐을 수 있으므로 목표/폴백 둘 중 하나와 맞으면 일치로 인정한다.
+    private static boolean hudResolutionMatches(HudOptions hud) {
+        float sx = MCDriftHudAPI.getResolutionRatioX();
+        float sy = MCDriftHudAPI.getResolutionRatioY();
+        int   sh = MCDriftHudAPI.getResolutionHeight();
+        if (resEquals(sx, sy, sh, hud.windowedRatioX(), hud.windowedRatioY(), hud.windowedHeight())) return true;
+        if (hud.windowedHeight() > 0 && hud.fallbackMinMonitorHeight() > 0
+                && resEquals(sx, sy, sh, hud.fallbackRatioX(), hud.fallbackRatioY(), hud.fallbackHeight())) return true;
+        return false;
+    }
+
+    private static boolean resEquals(float ax, float ay, int ah, float bx, float by, int bh) {
+        return ah == bh && Math.abs(ax - bx) < 1e-4f && Math.abs(ay - by) < 1e-4f;
     }
 
     static final Preset[] PRESETS = {

@@ -15,7 +15,6 @@
   "modselector.preset.4.name": "Original",
   "modselector.preset.4.desc": "Recreates the original KartRider's dashboard in pixel-art graphics.",
 
-  "modselector.open.mcrider": "MCRider Setting",
-  "modselector.open.ticksync": "TickSync Setting",
+  "modselector.open.mcdrifthud": "MCDriftHUD-Lite Setting",
   "modselector.open.not_installed": "Not installed"
 }

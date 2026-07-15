@@ -16,8 +16,6 @@ public abstract class GameMenuScreenMixin extends Screen {
         super(title);
     }
 
-    // tick sync의 원래 버튼 자리(10, 10)에 대신 들어간다 — ModSelectorMain이 tick sync/MCRider 버튼을
-    // 둘 다 숨겨두므로 이 위치가 비어 있다
     @Inject(method = "init", at = @At("RETURN"))
     private void modselector$addCustomButton(CallbackInfo ci) {
         this.addDrawableChild(

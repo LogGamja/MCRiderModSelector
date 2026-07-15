@@ -15,7 +15,6 @@
   "modselector.preset.4.name": "오리지널",
   "modselector.preset.4.desc": "원작 카트라이더의 계기판을 도트 그래픽으로 재현합니다.",
 
-  "modselector.open.mcrider": "MCRider 설정",
-  "modselector.open.ticksync": "틱 동기화 설정",
+  "modselector.open.mcdrifthud": "MCDriftHUD-Lite 설정",
   "modselector.open.not_installed": "설치되지 않음"
 }
