@@ -1,5 +1,6 @@
 package loggamja.modselector.mixin;
 
+import loggamja.modselector.ModSelectorMain;
 import loggamja.modselector.ModSelectorSettingScreen;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
@@ -18,6 +19,7 @@ public abstract class GameMenuScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("RETURN"))
     private void modselector$addCustomButton(CallbackInfo ci) {
+        if (!ModSelectorMain.shouldShowMenuButton()) return;
         this.addDrawableChild(
                 ButtonWidget.builder(Text.translatable("modselector.setting.menu_button"), button -> {
                             assert this.client != null;

@@ -16,7 +16,7 @@ final class PresetIconButton extends ButtonWidget {
     private final Identifier texture;
     private final BooleanSupplier selected;
 
-    // selected는 매 프레임 다시 평가한다 — 유저가 옵션을 직접 바꾸면 다음 렌더에서 바로 강조가 풀리도록
+    // selected는 매 프레임 다시 평가한다. 유저가 옵션을 직접 바꾸면 다음 렌더에서 바로 강조가 풀리도록
     PresetIconButton(int x, int y, int width, int height, Text message, Identifier texture, BooleanSupplier selected, PressAction onPress) {
         super(x, y, width, height, message, onPress, DEFAULT_NARRATION_SUPPLIER);
         this.texture = texture;

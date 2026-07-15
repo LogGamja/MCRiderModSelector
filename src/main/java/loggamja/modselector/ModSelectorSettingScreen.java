@@ -60,8 +60,8 @@ public class ModSelectorSettingScreen extends Screen {
         boolean ticksyncLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.TICKSYNC_MOD_ID);
         boolean mcdrifthudLoaded = FabricLoader.getInstance().isModLoaded(ModSelectorMain.MCDRIFTHUD_MOD_ID);
 
-        // 설명 텍스트를 아이콘 너비에 맞춰 줄바꿈해 두고, 프리셋 중 가장 줄이 많은 것을 기준으로 라벨 영역 높이를 정한다
-        // 옆 프리셋과 겹치지 않도록, 한 줄로 쭉 그리는 대신 아이콘 너비 안에서 줄바꿈한다
+        // 설명 텍스트를 아이콘 너비에 맞춰 줄바꿈해 두고 프리셋 중 가장 줄이 많은 것을 기준으로 라벨 영역 높이를 정한다
+        // 옆 프리셋과 겹치지 않도록 한 줄로 쭉 그리는 대신 아이콘 너비 안에서 줄바꿈한다
         wrappedDescriptions.clear();
         int maxDescLines = 1;
         for (var preset : PresetTable.PRESETS) {
