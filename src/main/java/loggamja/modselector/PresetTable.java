@@ -1,6 +1,6 @@
 package loggamja.modselector;
 
-import com.kite.mcdrift.client.api.MCDriftHudAPI;
+import com.kite.mcdrifthud.client.api.MCDriftHudAPI;
 import loggamja.mcrider.api.MCRiderAPI;
 import loggamja.sync.api.TickSyncAPI;
 import net.fabricmc.loader.api.FabricLoader;
@@ -21,20 +21,26 @@ final class PresetTable {
     record OptionValue(String id, int value) {}
 
     // MCDriftHUD-Lite는 토글 테이블 형태가 아니라 타입이 섞인 필드라 별도 레코드로 다룬다.
-    // designStyleId/textDisplayMode는 일부러 HudDesignStyle/HudConfigManager.TextDisplayMode(mcdrifthudlite의 실제 타입)가 아니라
-    // 문자열로 저장한다 — PRESETS 배열은 mcdrifthudlite 설치 여부와 상관없이 무조건 만들어지는 static 데이터라,
-    // 여기 mcdrifthudlite의 실제 타입을 직접 참조하면(예: HudDesignStyle.VANILLA) 그 클래스가 무조건 로드돼버려서
-    // mcdrifthudlite가 없을 때 화면을 여는 순간 NoClassDefFoundError가 난다. 실제 enum으로의 변환은
-    // isModLoaded(MCDRIFTHUD_MOD_ID) 가드 안(apply/isActive)에서만 이루어진다.
-    // designStyleId는 HudDesignStyle.getId()와 같은 값("vanilla"/"mcrider"/"original"),
+    // designStyleId/otherUiStyleId/textDisplayMode는 일부러 HudDesignStyle/OtherUiDesignStyle/HudConfigManager.TextDisplayMode
+    // (mcdrifthudlite의 실제 타입)가 아니라 문자열로 저장한다 — PRESETS 배열은 mcdrifthudlite 설치 여부와 상관없이
+    // 무조건 만들어지는 static 데이터라, 여기 mcdrifthudlite의 실제 타입을 직접 참조하면(예: HudDesignStyle.VANILLA)
+    // 그 클래스가 무조건 로드돼버려서 mcdrifthudlite가 없을 때 화면을 여는 순간 NoClassDefFoundError가 난다.
+    // 실제 enum으로의 변환은 isModLoaded(MCDRIFTHUD_MOD_ID) 가드 안(apply/isActive)에서만 이루어진다.
+    // designStyleId(타코미터)/otherUiStyleId(순위표·랩타이머·라이센스-마스터)는 각각 HudDesignStyle.getId(),
+    // OtherUiDesignStyle.getId()와 같은 값("vanilla"/"mcrider"/"original") — 두 축은 mcdrifthudlite에서
+    // 서로 독립적으로 분리돼 있으므로 프리셋에서도 항상 같이 명시해야 한다.
     // textDisplayMode는 HudConfigManager.TextDisplayMode의 enum 이름("SHOW_ALL"/"HIDE_SELF"/"HIDE_ALL")과 같은 문자열이다.
     // windowedHeight가 0이면 해상도는 건드리지 않는다는 뜻이다 (mcdrifthudlite 자체의 "미설정" 관례와 동일)
     // fallbackMinMonitorHeight가 0이면 fallback 없이 windowed 해상도를 그대로 적용한다.
     // 0보다 크면, 주 모니터 세로 해상도가 이 값보다 작을 때 fallback 해상도를 대신 적용한다.
-    record HudOptions(String designStyleId, boolean hideInvisibleEntities,
-                       String textDisplayMode, int gaugeSmoother,
+    // rankBoardOffsetY는 순위표 Y 위치(0~1, HudConfigManager가 clamp) - X는 모든 프리셋이 기본값(0.0)을 쓴다.
+    // 게이지 보간(gaugeSmoother)은 프리셋이 관리하지 않는다 - resetInstalledMods()가 mcdrifthudlite
+    // 기본값으로 되돌린 뒤 이 테이블은 다시 건드리지 않으므로 항상 mcdrifthudlite 자체 기본값을 따른다.
+    record HudOptions(String designStyleId, String otherUiStyleId, boolean hideInvisibleEntities,
+                       String textDisplayMode,
                        float windowedRatioX, float windowedRatioY, int windowedHeight,
-                       int fallbackMinMonitorHeight, float fallbackRatioX, float fallbackRatioY, int fallbackHeight) {}
+                       int fallbackMinMonitorHeight, float fallbackRatioX, float fallbackRatioY, int fallbackHeight,
+                       double rankBoardOffsetY) {}
 
     record Preset(String id, String nameKey, String descKey, Identifier texture,
                   boolean requiresMCRiderHUD, OptionValue[] mcriderOptions, HudOptions hudOptions) {}
@@ -80,9 +86,10 @@ final class PresetTable {
         if (loader.isModLoaded(ModSelectorMain.MCDRIFTHUD_MOD_ID)) {
             HudOptions hud = preset.hudOptions();
             MCDriftHudAPI.setDesignStyle(hud.designStyleId());
+            MCDriftHudAPI.setOtherUiDesignStyle(hud.otherUiStyleId());
             MCDriftHudAPI.setHideInvisibleEntities(hud.hideInvisibleEntities());
             MCDriftHudAPI.setTextDisplayMode(hud.textDisplayMode());
-            MCDriftHudAPI.setGaugeSmoother(hud.gaugeSmoother());
+            MCDriftHudAPI.setRankBoardOffset(0.0, hud.rankBoardOffsetY());
             if (hud.windowedHeight() > 0) {
                 if (hud.fallbackMinMonitorHeight() > 0) {
                     MCDriftHudAPI.setWindowedResolution(hud.windowedRatioX(), hud.windowedRatioY(), hud.windowedHeight(),
@@ -121,9 +128,10 @@ final class PresetTable {
             anyLoaded = true;
             HudOptions hud = preset.hudOptions();
             if (!MCDriftHudAPI.getDesignStyleId().equals(hud.designStyleId())) return false;
+            if (!MCDriftHudAPI.getOtherUiDesignStyleId().equals(hud.otherUiStyleId())) return false;
             if (MCDriftHudAPI.isHideInvisibleEntities() != hud.hideInvisibleEntities()) return false;
             if (!MCDriftHudAPI.getTextDisplayModeName().equals(hud.textDisplayMode())) return false;
-            if (MCDriftHudAPI.getGaugeSmoother() != hud.gaugeSmoother()) return false;
+            if (Math.abs(MCDriftHudAPI.getRankBoardOffsetY() - hud.rankBoardOffsetY()) > 1e-4) return false;
             // 해상도를 명시한 프리셋(windowedHeight>0)만, 그리고 창 모드에서만 비교한다
             // (windowedHeight==0은 "해상도 미관리"라는 뜻이고, 전체화면에선 setWindowedResolution이 no-op이라 저장값이 갱신되지 않는다)
             if (hud.windowedHeight() > 0
@@ -136,6 +144,8 @@ final class PresetTable {
 
     // 저장된 해상도 오버라이드가 이 프리셋의 창 해상도와 일치하는지 본다.
     // 모니터가 작아 fallback 해상도가 대신 적용됐을 수 있으므로 목표/폴백 둘 중 하나와 맞으면 일치로 인정한다.
+    // 목표(또는 폴백) 자체도 모니터보다 크면 MCDriftHudAPI.applyWindowedResolution의 clampHeightToMonitor가
+    // 비율은 그대로 두고 높이만 모니터 높이로 줄여서 저장하므로, 그 경우도 일치로 인정해야 한다.
     private static boolean hudResolutionMatches(HudOptions hud) {
         float sx = MCDriftHudAPI.getResolutionRatioX();
         float sy = MCDriftHudAPI.getResolutionRatioY();
@@ -143,11 +153,22 @@ final class PresetTable {
         if (resEquals(sx, sy, sh, hud.windowedRatioX(), hud.windowedRatioY(), hud.windowedHeight())) return true;
         if (hud.windowedHeight() > 0 && hud.fallbackMinMonitorHeight() > 0
                 && resEquals(sx, sy, sh, hud.fallbackRatioX(), hud.fallbackRatioY(), hud.fallbackHeight())) return true;
+
+        int monitorHeight = MCDriftHudAPI.getPrimaryMonitorHeight();
+        if (monitorHeight > 0 && sh == monitorHeight) {
+            if (monitorHeight < hud.windowedHeight() && ratioEquals(sx, sy, hud.windowedRatioX(), hud.windowedRatioY())) return true;
+            if (hud.fallbackMinMonitorHeight() > 0 && monitorHeight < hud.fallbackHeight()
+                    && ratioEquals(sx, sy, hud.fallbackRatioX(), hud.fallbackRatioY())) return true;
+        }
         return false;
     }
 
     private static boolean resEquals(float ax, float ay, int ah, float bx, float by, int bh) {
-        return ah == bh && Math.abs(ax - bx) < 1e-4f && Math.abs(ay - by) < 1e-4f;
+        return ah == bh && ratioEquals(ax, ay, bx, by);
+    }
+
+    private static boolean ratioEquals(float ax, float ay, float bx, float by) {
+        return Math.abs(ax - bx) < 1e-4f && Math.abs(ay - by) < 1e-4f;
     }
 
     // 화면에 실제로 그릴 프리셋. HUD 모드가 없으면 requiresMCRiderHUD 프리셋은 제외한다
@@ -197,7 +218,7 @@ final class PresetTable {
                             new OptionValue("bike_suspension", 0),
                             new OptionValue("track_minimap", 0),
                     },
-                    new HudOptions("vanilla", false, "SHOW_ALL", 1, 0, 0, 0, 0, 0, 0, 0)
+                    new HudOptions("vanilla", "vanilla", false, "SHOW_ALL", 0, 0, 0, 0, 0, 0, 0, 0.0)
             ),
             // 2. 세미 클래식 — 클래식(조작 가속, 패킷 가속)에 카메라 통과/드래프트 게이지/레이더/미니맵(좌측 중간)을 추가로 켜고,
             //    자동 3인칭을 켜고 카메라 모드를 보통[3]으로 바꾼다 (이후 프리셋도 자동 3인칭은 계속 켜짐)
@@ -218,11 +239,11 @@ final class PresetTable {
                             new OptionValue("bike_suspension", 0),
                             new OptionValue("track_minimap", 3),
                     },
-                    new HudOptions("vanilla", true, "HIDE_SELF", 1, 0, 0, 0, 0, 0, 0, 0)
+                    new HudOptions("vanilla", "vanilla", true, "HIDE_SELF", 0, 0, 0, 0, 0, 0, 0, 0.0)
             ),
             // 3. 마크라이더 — 세미 클래식의 모든 옵션을 포함하고, 서스펜션(카트바디)/바이크 서스펜션(현실적)을 켜고 미니맵을 우측 중간으로 옮긴다
-            //    HUD는 마크라이더 디자인으로 전환하고, 게이지 보간을 빠르게로 바꾼다 (이후 프리셋도 계속 유지)
-            //    창 모드일 때 해상도를 1344x1008로 맞추되, 모니터 세로가 1080보다 작으면 1024x768로 대신 맞춘다
+            //    HUD는 마크라이더 디자인으로 전환한다 (이후 프리셋도 계속 유지)
+            //    창 모드일 때 해상도를 1344x1008로 맞춘다 (모니터 크기에 따른 폴백 없음)
             new Preset(
                     "preset_3", "modselector.preset.3.name", "modselector.preset.3.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_3.png"),
@@ -239,11 +260,10 @@ final class PresetTable {
                             new OptionValue("bike_suspension", 2),
                             new OptionValue("track_minimap", 4),
                     },
-                    new HudOptions("mcrider", true, "HIDE_SELF", 2,
-                            4, 3, 1008, 1080, 4, 3, 768)
+                    new HudOptions("mcrider", "mcrider", true, "HIDE_SELF", 4, 3, 1008, 0, 0, 0, 0, 0.0)
             ),
             // 4. 오리지널 — 마크라이더의 모든 옵션을 포함하고, 서스펜션(카트와 카메라)/바이크 서스펜션(기본)만 바꾼다
-            //    HUD는 원작 디자인으로 전환하고, 창 모드일 때만 해상도를 1024x768로 맞춘다
+            //    HUD는 원작 디자인으로 전환하고, 창 모드일 때만 해상도를 1024x768로 맞춘다. 순위표 Y는 0.2로 올린다
             new Preset(
                     "preset_4", "modselector.preset.4.name", "modselector.preset.4.desc",
                     Identifier.of("mcridermodselector", "textures/gui/preset_4.png"),
@@ -260,7 +280,7 @@ final class PresetTable {
                             new OptionValue("bike_suspension", 0),
                             new OptionValue("track_minimap", 4),
                     },
-                    new HudOptions("original", true, "HIDE_SELF", 2, 4, 3, 768, 0, 0, 0, 0)
+                    new HudOptions("original", "original", true, "HIDE_SELF", 4, 3, 768, 0, 0, 0, 0, 0.2)
             ),
     };
 }

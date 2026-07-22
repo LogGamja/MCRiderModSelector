@@ -1,6 +1,6 @@
 package loggamja.modselector;
 
-import com.kite.mcdrift.client.api.MCDriftHudAPI;
+import com.kite.mcdrifthud.client.api.MCDriftHudAPI;
 import loggamja.mcrider.api.MCRiderAPI;
 import loggamja.sync.api.TickSyncAPI;
 import net.fabricmc.loader.api.FabricLoader;
